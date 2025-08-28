@@ -60,10 +60,10 @@ col_shp <- col_shp %>%
   mutate(depto_shp = str_squish(str_to_upper(.data[[col_depto_shp]])))
 
 # Rango de fechas y precio para filtros
-fecha_min <- min(datos$FECHA_PRECIO, na.rm = TRUE)
-fecha_max <- max(datos$FECHA_PRECIO, na.rm = TRUE)
-precio_min <- floor(min(datos$PRECIO_PROMEDIO_PUBLICADO, na.rm = TRUE))
-precio_max <- ceiling(max(datos$PRECIO_PROMEDIO_PUBLICADO, na.rm = TRUE))
+fecha_min <- suppressWarnings(min(datos$FECHA_PRECIO, na.rm = TRUE))
+fecha_max <- suppressWarnings(max(datos$FECHA_PRECIO, na.rm = TRUE))
+precio_min <- suppressWarnings(floor(min(datos$PRECIO_PROMEDIO_PUBLICADO, na.rm = TRUE)))
+precio_max <- suppressWarnings(ceiling(max(datos$PRECIO_PROMEDIO_PUBLICADO, na.rm = TRUE)))
 
 # ------------------------
 # 2) UI
@@ -296,12 +296,11 @@ server <- function(input, output, session){
   output$mapa <- renderLeaflet({
     shp <- shp_join()
     make_pal <- function(domain_vals) {
-      if (requireNamespace("RColorBrewer", quietly = TRUE)) {
-        colorNumeric("Blues", domain = domain_vals, na.color = "#f8f9fa")
-      } else {
-        colorNumeric(c("#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#3182bd","#08519c"),
-                     domain = domain_vals, na.color = "#f8f9fa")
-      }
+      # Paleta manual (evita depender de RColorBrewer en contenedor)
+      colorNumeric(
+        palette = c("#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#3182bd","#08519c"),
+        domain = domain_vals, na.color = "#f8f9fa"
+      )
     }
     
     if (all(is.na(shp$PRECIO_PROMEDIO))) {

@@ -1,21 +1,63 @@
-FROM --platform=linux/amd64 rocker/shiny:4.4.2
+# syntax=docker/dockerfile:1
+FROM --platform=linux/amd64 rocker/shiny:latest
 
-# libs del sistema para sf/leaflet
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    libudunits2-dev libgdal-dev libgeos-dev libproj-dev libcurl4-openssl-dev \
+# Configurar variables de entorno
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHINY_LOG_STDERR=1
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libudunits2-dev \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    libxml2-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libjpeg-dev \
+    g++ \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
-# paquetes R (usa littler::install2.r que ya viene en las imágenes rocker)
-RUN install2.r --error \
-    shiny shinyWidgets bslib readr dplyr stringr leaflet plotly \
-    lubridate forcats scales ggplot2 markdown sf
+# Instalar paquetes de R
+RUN install2.r --error --skipinstalled \
+    sf \
+    leaflet \
+    plotly \
+    shiny \
+    shinyWidgets \
+    bslib \
+    readr \
+    dplyr \
+    stringr \
+    lubridate \
+    forcats \
+    scales \
+    ggplot2 \
+    htmltools \
+    markdown \
+    DT \
+    htmlwidgets
 
-# copia tu app al lugar que sirve shiny-server
-COPY . /srv/shiny-server/app
-RUN chown -R shiny:shiny /srv/shiny-server
+# Configurar directorio de trabajo
+WORKDIR /srv/shiny-server
 
-# (opcional) servir en la raíz "/" si agregaste este archivo
-# si NO tienes shiny-server.conf, borra la siguiente línea
-COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
+# Copiar archivos de la aplicación
+COPY . /srv/shiny-server/
 
+# Cambiar permisos
+RUN chown -R shiny:shiny /srv/shiny-server && \
+    chmod -R 755 /srv/shiny-server
+
+# Crear directorio de logs si no existe
+RUN mkdir -p /var/log/shiny-server && \
+    chown shiny:shiny /var/log/shiny-server
+
+# Exponer puerto
 EXPOSE 3838
+
+# Comando por defecto
+CMD ["/usr/bin/shiny-server"]

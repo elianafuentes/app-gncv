@@ -1,10 +1,11 @@
-# .dockerignore
 .git
-__MACOSX
-.DS_Store
+.Rproj.user
 .Rhistory
 .RData
-rsconnect
 renv
 renv.lock
-.Rprofile
+packrat
+*.zip
+*.tar.gz
+*.rds
+.DS_Store
