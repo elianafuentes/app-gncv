@@ -1,12 +1,16 @@
-FROM rocker/shiny:4.4.2
+FROM --platform=linux/amd64 rocker/geospatial:4.4.2
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-  libudunits2-dev libgdal-dev libgeos-dev libproj-dev libcurl4-openssl-dev \
-  && rm -rf /var/lib/apt/lists/*
+# Paquetes R (rápidos con install2.r que trae rocker)
+RUN install2.r --error \
+  shiny shinyWidgets bslib readr dplyr stringr leaflet plotly \
+  lubridate forcats scales ggplot2 markdown
 
-RUN R -q -e 'install.packages(c("shiny","shinyWidgets","bslib","sf","readr","dplyr","stringr","leaflet","plotly","lubridate","forcats","scales","ggplot2","markdown"), repos="https://cloud.r-project.org")'
-
+# Copia tu app
 COPY . /srv/shiny-server/app
 RUN chown -R shiny:shiny /srv/shiny-server
+
+# Configura Shiny Server para servir tu app en "/"
+COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
+
 
 EXPOSE 3838
