@@ -1,0 +1,10 @@
+# .dockerignore
+.git
+__MACOSX
+.DS_Store
+.Rhistory
+.RData
+rsconnect
+renv
+renv.lock
+.Rprofile
